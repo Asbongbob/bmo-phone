@@ -929,7 +929,7 @@ function greet(){
 /* ═════════ LISTEN ═════════ */
 /* He collects everything you say and only replies when YOU decide he should:
    either a long pause you control, or letting go of the button in hold mode. */
-let capturing=false, buffer="", silenceTimer=null, holdMode=false, restartOK=false;
+let capturing=false, buffer="", lastInterim="", silenceTimer=null, holdMode=false, restartOK=false;
 
 function armSilence(){
   clearTimeout(silenceTimer);
@@ -945,7 +945,7 @@ function startCapture(){
   DIAG.state="listening"; DIAG.recogErr="";
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){ speak(T[lang].unsupported); return; }
-  capturing=true; restartOK=true; buffer="";
+  capturing=true; restartOK=true; buffer=""; lastInterim="";
   talkBtn.classList.add("listening");
   setStatus(holdMode?T[lang].listen:(lang==="ar"?"اضغط لما تخلص":"tap when you're done"),true);
   setMood("curious"); chirpHi(); showHeard("");
@@ -963,6 +963,7 @@ function startCapture(){
       if(r.isFinal) buffer+=(buffer?" ":"")+r[0].transcript.trim();
       else interim+=r[0].transcript;
     }
+    if(interim.trim()) lastInterim=interim.trim();
     DIAG.heard=(buffer+" "+interim).trim(); DIAG.heardAt=Date.now();
     showHeard(interim);
     armSilence();
@@ -980,7 +981,6 @@ function startCapture(){
   recog.onend=()=>{ if(restartOK&&capturing){ try{recog.start();}catch(e){} } };
 
   try{ recog.start(); }catch(e){}
-  armSilence();
 }
 function finishCapture(){
   if(!capturing) return;
@@ -988,9 +988,14 @@ function finishCapture(){
   clearTimeout(silenceTimer);
   try{ recog.stop(); }catch(e){}
   talkBtn.classList.remove("listening");
-  const said=buffer.trim();
-  buffer="";
-  if(!said){ setStatus(T[lang].tap); if(mood==="curious")setMood("idle"); chirpLow(); return; }
+  const said=(buffer.trim()||lastInterim.trim());
+  buffer=""; lastInterim="";
+  if(!said){
+    setStatus(T[lang].tap); if(mood==="curious")setMood("idle");
+    DIAG.state="heard nothing";
+    speak(lang==="ar"?"ما سمعت شي. قرّب الجوال وجرب مرة ثانية.":"I didn't hear anything. Try again a bit closer?");
+    return;
+  }
   DIAG.sent=said; DIAG.state="sent to model";
   subEl.textContent="“"+said+"”";
   setTimeout(()=>think(said),260);
