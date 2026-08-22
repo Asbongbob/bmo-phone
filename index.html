@@ -54,6 +54,17 @@ body{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:var(--pho
 .mouth{width:26%;height:4.5vh;background:var(--phos);border-radius:0 0 65% 65%;
   box-shadow:0 0 2.4vh rgba(157,255,214,.45);
   transition:height .07s linear,width .28s ease,border-radius .28s ease;}
+.hand{position:absolute;z-index:3;right:6%;top:26%;width:16%;
+  opacity:0;transform-origin:50% 90%;pointer-events:none;
+  filter:drop-shadow(0 0 1.6vh rgba(157,255,214,.55));}
+.hand.wave{animation:waveIn 2.1s ease-out;}
+@keyframes waveIn{
+  0%{opacity:0;transform:translateY(30%) rotate(0deg);}
+  12%{opacity:1;transform:translateY(0) rotate(-22deg);}
+  28%{transform:rotate(20deg);} 44%{transform:rotate(-20deg);}
+  60%{transform:rotate(18deg);} 76%{transform:rotate(-14deg);}
+  90%{opacity:1;transform:rotate(0deg);} 100%{opacity:0;transform:translateY(20%);}
+}
 .blush{position:absolute;top:52%;width:11%;aspect-ratio:1.7/1;background:var(--phos-dim);
   border-radius:50%;opacity:0;transition:opacity .45s ease;filter:blur(.4vh);}
 .blush.l{left:6%;} .blush.r{right:6%;}
@@ -134,6 +145,13 @@ video,#buf{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
   <div class="tasks" id="taskList"></div>
   <div class="face" id="face">
     <div class="blush l"></div><div class="blush r"></div>
+    <svg class="hand" id="hand" viewBox="0 0 60 80" fill="var(--phos)" aria-hidden="true">
+      <rect x="8"  y="18" width="9" height="34" rx="4.5"/>
+      <rect x="19" y="10" width="9" height="42" rx="4.5"/>
+      <rect x="30" y="12" width="9" height="40" rx="4.5"/>
+      <rect x="41" y="20" width="9" height="32" rx="4.5"/>
+      <rect x="6"  y="44" width="46" height="30" rx="13"/>
+    </svg>
     <div class="eyes"><div class="eye" id="eyeL"></div><div class="eye" id="eyeR"></div></div>
     <div class="mouth" id="mouth"></div>
   </div>
@@ -712,7 +730,13 @@ const PROVIDERS={
         headers:{"content-type":"application/json"},
         body:JSON.stringify({
           system_instruction:{parts:[{text:systemPrompt()}]},
-          contents:history.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]})),
+          contents:history.map((m,i)=>{
+            const last=i===history.length-1;
+            const parts=[{text:m.content}];
+            if(last&&m.role==="user"&&pendingImage)
+              parts.unshift({inlineData:{mimeType:pendingImage.mime,data:pendingImage.data}});
+            return {role:m.role==="assistant"?"model":"user",parts};
+          }),
           generationConfig:{maxOutputTokens:400,temperature:0.8}
         })
       });
@@ -741,7 +765,12 @@ const PROVIDERS={
         body:JSON.stringify({
           model:modelOf(),
           max_tokens:400,
-          messages:[{role:"system",content:systemPrompt()},...history]
+          messages:[{role:"system",content:systemPrompt()},...history.map((m,i)=>{
+            if(i===history.length-1&&m.role==="user"&&pendingImage)
+              return {role:"user",content:[{type:"text",text:m.content},
+                {type:"image_url",image_url:{url:"data:"+pendingImage.mime+";base64,"+pendingImage.data}}]};
+            return m;
+          })]
         })
       });
       if(!res.ok) throw new Error("HTTP "+res.status);
@@ -778,7 +807,12 @@ const PROVIDERS={
           model:modelOf()||"local-model",
           max_tokens:400,
           temperature:0.8,
-          messages:[{role:"system",content:systemPrompt()},...history]
+          messages:[{role:"system",content:systemPrompt()},...history.map((m,i)=>{
+            if(i===history.length-1&&m.role==="user"&&pendingImage)
+              return {role:"user",content:[{type:"text",text:m.content},
+                {type:"image_url",image_url:{url:"data:"+pendingImage.mime+";base64,"+pendingImage.data}}]};
+            return m;
+          })]
         })
       });
       if(!res.ok) throw new Error("HTTP "+res.status);
@@ -795,7 +829,14 @@ const PROVIDERS={
         method:"POST",
         headers:{"content-type":"application/json","x-api-key":apiKey,
           "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-        body:JSON.stringify({model:modelOf(),max_tokens:400,system:systemPrompt(),messages:history})
+        body:JSON.stringify({model:modelOf(),max_tokens:400,system:systemPrompt(),
+          messages:history.map((m,i)=>{
+            if(i===history.length-1&&m.role==="user"&&pendingImage)
+              return {role:"user",content:[
+                {type:"image",source:{type:"base64",media_type:pendingImage.mime,data:pendingImage.data}},
+                {type:"text",text:m.content}]};
+            return m;
+          })})
       });
       if(!res.ok) throw new Error("HTTP "+res.status);
       const d=await res.json();
@@ -848,6 +889,10 @@ async function think(said){
     const out=localBrain(said);
     return perform(out, out.add.length?"ok":out.done.length?"yay":null);
   }
+  if(VISION_RE.test(said)||VISION_AR.test(said)){
+    pendingImage=grabFrame();
+    if(!pendingImage) speak(lang==="ar"?"الكاميرا مغلقة.":"My camera isn't on.");
+  }
   busy=true; setStatus(T[lang].think); bloop(); setMood("curious");
   history.push({role:"user",content:said});
   if(history.length>12) history=history.slice(-12);
@@ -882,6 +927,7 @@ async function think(said){
     DIAG.err=String(err.message||err).slice(0,160); DIAG.state="model error";
     speak(explain(err));
   }
+  pendingImage=null;
   busy=false;
 }
 
@@ -892,6 +938,48 @@ async function startCamera(){
     video.srcObject=s; await video.play(); seeing=true; requestAnimationFrame(watch);
   }catch(e){ seeing=false; }
 }
+const hand=$("hand");
+let xTrail=[], lastWave=0;
+function waveBack(){
+  hand.classList.remove("wave"); void hand.offsetWidth; hand.classList.add("wave");
+  setMood("happy"); chirpHi();
+  setTimeout(()=>tone(1180,.09,{slide:260,vol:.18}),160);
+  const who=userName?" "+userName:"";
+  speak(lang==="ar"?`أهلاً${who}! أنا ألوّح لك كمان.`:`Hi${who}! Waving back.`,{clip:"hello"});
+  setTimeout(()=>setMood("idle"),2800);
+}
+/* a wave = the motion centre swinging left-right several times in a couple of seconds */
+function checkWave(cx,strength){
+  const now=Date.now();
+  if(strength<70) return;
+  xTrail.push({x:cx,t:now});
+  xTrail=xTrail.filter(p=>now-p.t<1800);
+  if(xTrail.length<8) return;
+  let flips=0, dir=0, span=0;
+  const lo=Math.min(...xTrail.map(p=>p.x)), hi=Math.max(...xTrail.map(p=>p.x));
+  span=hi-lo;
+  for(let i=1;i<xTrail.length;i++){
+    const d=Math.sign(xTrail[i].x-xTrail[i-1].x);
+    if(d&&d!==dir){ if(dir) flips++; dir=d; }
+  }
+  if(flips>=4 && span>0.16 && now-lastWave>6000){
+    lastWave=now; xTrail=[]; waveBack();
+  }
+}
+
+/* one JPEG frame from the camera, for the model to look at */
+function grabFrame(){
+  if(!seeing||!video.videoWidth) return null;
+  const c=document.createElement("canvas");
+  const w=512, h=Math.round(video.videoHeight*(w/video.videoWidth));
+  c.width=w; c.height=h;
+  c.getContext("2d").drawImage(video,0,0,w,h);
+  return {mime:"image/jpeg", data:c.toDataURL("image/jpeg",0.72).split(",")[1]};
+}
+let pendingImage=null;
+const VISION_RE=/\b(what (do you |can you )?see|look at (this|that|me)|what is this|what'?s this|what am i holding|describe (this|what you see)|can you read this)\b/i;
+const VISION_AR=/(شوف|وش تشوف|شنو هذا|وش هذا|اقرأ هذا|انظر)/;
+
 let lastCheck=0;
 function watch(t){
   if(!seeing) return;
