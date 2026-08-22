@@ -111,6 +111,7 @@ input[type=range]{width:100%;accent-color:var(--phos);}
 .chip.on{background:var(--phos);color:var(--ink);border-color:var(--phos);}
 .note{font-size:clamp(10px,1.55vh,13px);color:var(--phos-fade);line-height:1.6;}
 .note b{color:var(--gold);font-weight:600;}
+#diagOut{white-space:pre-wrap;line-height:1.7;}
 .note{user-select:text;-webkit-user-select:text;}
 .close{align-self:center;margin:2vh 0 1vh;background:none;border:0;color:var(--phos-dim);font:inherit;
   font-size:clamp(11px,1.8vh,15px);letter-spacing:.22em;text-transform:uppercase;cursor:pointer;}
@@ -154,6 +155,11 @@ video,#buf{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
       Back
     </button>
   </div>
+  <h2>Diagnostics</h2>
+  <button class="chip" id="diagChip">Refresh status</button>
+  <button class="chip" id="voiceTestChip">Test his voice</button>
+  <p class="note" id="diagOut" style="user-select:text;-webkit-user-select:text"></p>
+
   <h2>His brain</h2>
   <div class="row"><label for="provider">Provider</label>
     <select id="provider">
@@ -248,6 +254,7 @@ const scaleSl=$("scale"),shiftSl=$("shift"),keyInput=$("key"),nameInput=$("yourN
 const providerSel=$("provider"),keyHint=$("keyHint"),modelInput=$("model"),testChip=$("testChip");
 const modelList=$("modelList");
 const baseUrlInput=$("baseUrl"),baseRow=$("baseRow");
+const diagChip=$("diagChip"),diagOut=$("diagOut"),voiceTestChip=$("voiceTestChip");
 const pauseSl=$("pause"),pauseVal=$("pauseVal"),holdChip=$("holdChip");
 const liveVoiceSel=$("liveVoice");
 const gate=$("gate"),startBtn=$("startBtn");
@@ -255,6 +262,7 @@ const video=$("cam"),buf=$("buf"),bctx=buf.getContext("2d",{willReadFrequently:t
 
 let lang="en",voiceOn=true,beepMode=false,listening=false,seeing=false,busy=false;
 let lastSeen=0,alone=true,prev=null,flapTimer=null,recog=null,voices=[],chosenVoice=null;
+const DIAG={heard:"",heardAt:0,sent:"",reply:"",err:"",recogErr:"",state:"idle"};
 let tasks=[],history=[],apiKey="",userName="",provider="gemini",model="",baseUrl="";
 let focusEnd=0,focusTick=null;
 
@@ -858,6 +866,7 @@ async function think(said){
       const plain=clean.replace(/^\{[\s\S]*\}$/,"").trim();
       out.say=(plain||clean||"").slice(0,240);
     }
+    DIAG.reply=String(out.say||"").slice(0,80); DIAG.state="replied";
     if(!out.say.trim()) out.say=(lang==="ar"?"ما طلع منه شي. جرب مرة ثانية؟":"I got an empty answer back. Try again?");
     out.add=Array.isArray(out.add)?out.add:[];
     out.done=Array.isArray(out.done)?out.done:[];
@@ -870,6 +879,7 @@ async function think(said){
     setTimeout(()=>{ if(mood!=="idle") setMood("idle"); },3600);
   }catch(err){
     chirpLow();
+    DIAG.err=String(err.message||err).slice(0,160); DIAG.state="model error";
     speak(explain(err));
   }
   busy=false;
@@ -932,6 +942,7 @@ function showHeard(interim){
   subEl.textContent=txt?"“"+txt+"…”":"";
 }
 function startCapture(){
+  DIAG.state="listening"; DIAG.recogErr="";
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){ speak(T[lang].unsupported); return; }
   capturing=true; restartOK=true; buffer="";
@@ -952,10 +963,12 @@ function startCapture(){
       if(r.isFinal) buffer+=(buffer?" ":"")+r[0].transcript.trim();
       else interim+=r[0].transcript;
     }
+    DIAG.heard=(buffer+" "+interim).trim(); DIAG.heardAt=Date.now();
     showHeard(interim);
     armSilence();
   };
   recog.onerror=ev=>{
+    DIAG.recogErr=ev.error+" @"+new Date().toLocaleTimeString();
     if(ev.error==="no-speech"){ armSilence(); return; }   // just quiet, keep waiting
     if(ev.error==="aborted") return;
     chirpLow();
@@ -978,6 +991,7 @@ function finishCapture(){
   const said=buffer.trim();
   buffer="";
   if(!said){ setStatus(T[lang].tap); if(mood==="curious")setMood("idle"); chirpLow(); return; }
+  DIAG.sent=said; DIAG.state="sent to model";
   subEl.textContent="“"+said+"”";
   setTimeout(()=>think(said),260);
 }
@@ -1197,6 +1211,32 @@ clearChip.addEventListener("click",()=>{tasks=[];saveTasks();renderTasks();click
 langChip.addEventListener("click",()=>{
   lang=lang==="en"?"ar":"en"; langChip.textContent="Language: "+lang.toUpperCase();
   store.set("lang",lang); loadVoices(); history=[]; click();
+});
+async function refreshDiag(){
+  const SR=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
+  let mic="unknown";
+  try{ const st=await navigator.permissions.query({name:"microphone"}); mic=st.state; }catch(e){}
+  const lines=[
+    "provider: "+provider+(provider==="local"?("  url: "+(baseUrl||"(blank)")):""),
+    "model: "+(modelOf()||"(none)"),
+    "key: "+(apiKey?("set, "+apiKey.length+" chars"):"blank"),
+    "speech recognition: "+(SR?"supported":"NOT SUPPORTED"),
+    "mic permission: "+mic,
+    "audio engine: "+(AC?AC.state:"not started"),
+    "hold mode: "+(holdMode?"ON (press and hold)":"off (tap to start, tap to send)"),
+    "state: "+DIAG.state,
+    "last heard: "+(DIAG.heard||"(nothing yet)"),
+    "last sent: "+(DIAG.sent||"(nothing yet)"),
+    "last reply: "+(DIAG.reply||"(nothing yet)"),
+    "mic error: "+(DIAG.recogErr||"none"),
+    "model error: "+(DIAG.err||"none")
+  ];
+  diagOut.textContent=lines.join("\n");
+}
+diagChip.addEventListener("click",()=>{click();refreshDiag();});
+voiceTestChip.addEventListener("click",()=>{
+  click(); if(AC&&AC.state==="suspended") AC.resume();
+  chirpHi(); speak(lang==="ar"?"تجربة صوت. تسمعني؟":"Voice test. Can you hear me?");
 });
 providerSel.addEventListener("change",()=>{
   if(liveOn) liveToggle();
