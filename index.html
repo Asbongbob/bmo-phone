@@ -835,7 +835,8 @@ function perform(out,clip){
 }
 
 async function think(said){
-  if(!apiKey){
+  const needsKey = provider!=="local";
+  if((needsKey && !apiKey) || (provider==="local" && !baseUrl)){
     const out=localBrain(said);
     return perform(out, out.add.length?"ok":out.done.length?"yay":null);
   }
@@ -845,9 +846,22 @@ async function think(said){
   try{
     const raw=(await callModel()).trim();
     history.push({role:"assistant",content:raw});
-    let out;
-    try{ out=JSON.parse(raw.replace(/```json|```/g,"").trim()); }
-    catch(e){ out={say:raw.slice(0,220),mood:"idle",add:[],done:[],focus:0}; }
+    const clean=raw.replace(/```json|```/g,"").replace(/<think>[\s\S]*?<\/think>/gi,"").trim();
+    let out=null;
+    try{
+      const j=clean.indexOf("{"), k=clean.lastIndexOf("}");
+      if(j>=0&&k>j) out=JSON.parse(clean.slice(j,k+1));
+    }catch(e){}
+    if(!out||typeof out!=="object") out={};
+    // smaller local models often ignore the JSON instruction — use whatever they said
+    if(!out.say||!String(out.say).trim()){
+      const plain=clean.replace(/^\{[\s\S]*\}$/,"").trim();
+      out.say=(plain||clean||"").slice(0,240);
+    }
+    if(!out.say.trim()) out.say=(lang==="ar"?"ما طلع منه شي. جرب مرة ثانية؟":"I got an empty answer back. Try again?");
+    out.add=Array.isArray(out.add)?out.add:[];
+    out.done=Array.isArray(out.done)?out.done:[];
+    out.focus=Number(out.focus)||0;
     if(Array.isArray(out.add)&&out.add.length) addTasks(out.add);
     if(Array.isArray(out.done)&&out.done.length){ completeByText(out.done); fanfare(); }
     setMood(out.mood||"idle");
