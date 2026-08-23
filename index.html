@@ -757,6 +757,27 @@ const PROVIDERS={
   openrouter:{
     hint:'Free models, no card. Key from openrouter.ai → Keys. IMPORTANT: turn on "free endpoints that may train on inputs" at openrouter.ai/settings/privacy or every request fails with a 404.',
     model:'meta-llama/llama-3.3-70b-instruct:free',
+    async probe(){
+      const res=await fetch("https://openrouter.ai/api/v1/models");
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const d=await res.json();
+      const all=(d.data||[]);
+      const free=all.filter(m=>/:free$/.test(m.id)).map(m=>m.id).sort();
+      const paid=all.filter(m=>!/:free$/.test(m.id)).map(m=>m.id).sort();
+      const ids=free.concat(paid);
+      if(!ids.length) throw new Error("OpenRouter returned no models.");
+      modelList.innerHTML="";
+      ids.slice(0,300).forEach(n=>{
+        const o=document.createElement("option");
+        o.value=n; o.label=/:free$/.test(n)?"free":"paid";
+        modelList.appendChild(o);
+      });
+      if(!model||!ids.includes(model)){
+        const best=free.find(n=>/llama-3\.3-70b|qwen3|deepseek-chat|gemma-3-27b/i.test(n))||free[0]||ids[0];
+        model=best; modelInput.value=best; store.set("model_openrouter",best);
+      }
+      return free.length+" free models ("+ids.length+" total). Using "+model+".";
+    },
     async call(){
       const res=await fetch("https://openrouter.ai/api/v1/chat/completions",{
         method:"POST",
@@ -851,6 +872,8 @@ function modelOf(){
 const callModel=()=>{const P=PROVIDERS[provider]||PROVIDERS.gemini;return P.callSafe?P.callSafe():P.call();};
 function explain(err){
   const m=String(err.message||err);
+  if(provider==="local"&&/No key pasted/i.test(m))
+    return "Local mode needs no key — just the server address.";
   if(provider==="local"&&/Failed to fetch|NetworkError|Load failed/i.test(m))
     return "Can't reach your PC. Check LM Studio's server is running, CORS is on, and the address is https (a plain http:// address is blocked on this page).";
   if(m.includes("every auth method"))
@@ -1350,7 +1373,8 @@ testChip.addEventListener("click",async()=>{
   const save=history.slice(); history=[{role:"user",content:"say hi in three words"}];
   try{
     const P=PROVIDERS[provider];
-    if(!apiKey) throw new Error("No key pasted yet.");
+    if(provider==="local"){ if(!baseUrl) throw new Error("Add the server address first."); }
+    else if(!apiKey) throw new Error("No key pasted yet.");
     if(P.probe){ keyHint.textContent=await P.probe(); }
     const r=await callModel();
     testChip.textContent="Works!"; chirpHi();
