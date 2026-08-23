@@ -31,7 +31,23 @@ body{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:var(--pho
   box-shadow:0 0 1.4vh var(--gold);transition:width 1s linear;}
 
 /* task strip */
-.tasks{position:absolute;top:2.5%;left:0;right:0;z-index:6;padding:0 6%;
+.taskhead{position:absolute;top:1.4%;left:0;right:0;z-index:6;text-align:center;
+  font-size:clamp(8px,1.35vh,12px);letter-spacing:.2em;text-transform:uppercase;
+  color:var(--phos-dim);cursor:pointer;}
+.taskhead b{color:var(--phos);font-weight:600;}
+.modelrow{display:flex;align-items:center;gap:3vw;padding:1.5vh 0;border-bottom:1px solid #0d3129;
+  font-size:clamp(11px,1.8vh,15px);cursor:pointer;word-break:break-all;}
+.modelrow.sel{color:var(--phos);} .modelrow.sel::before{content:"●";color:var(--phos);}
+.modelrow:not(.sel){color:var(--phos-dim);} .modelrow:not(.sel)::before{content:"○";}
+.modelrow em{font-style:normal;color:var(--gold);font-size:.85em;margin-left:auto;flex:0 0 auto;}
+.fullrow{display:flex;align-items:center;gap:3vw;padding:1.5vh 0;border-bottom:1px solid #0d3129;
+  font-size:clamp(12px,1.95vh,16px);}
+.fullrow .tick{width:2.4vh;height:2.4vh;border-radius:50%;border:1px solid var(--phos-dim);flex:0 0 auto;cursor:pointer;}
+.fullrow.done .tick{background:var(--phos-dim);}
+.fullrow.done span{text-decoration:line-through;color:var(--phos-fade);}
+.fullrow span{flex:1;word-break:break-word;}
+.fullrow button{background:none;border:0;color:var(--phos-fade);font:inherit;font-size:2.2vh;cursor:pointer;}
+.tasks{position:absolute;top:5.2%;left:0;right:0;z-index:6;padding:0 6%;
   display:flex;flex-direction:column;gap:.7vh;max-height:26%;overflow-y:auto;}
 .task{display:flex;align-items:center;gap:2.4vw;font-size:clamp(10px,1.65vh,14px);
   color:var(--phos-dim);letter-spacing:.04em;cursor:pointer;line-height:1.3;}
@@ -65,10 +81,14 @@ body{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:var(--pho
   60%{transform:rotate(18deg);} 76%{transform:rotate(-14deg);}
   90%{opacity:1;transform:rotate(0deg);} 100%{opacity:0;transform:translateY(20%);}
 }
+.face.love .eye{clip-path:path("M12 4 C12 1,8 0,6 2.5 C4 0,0 1,0 4 C0 7.5,6 11,6 11 C6 11,12 7.5,12 4 Z");
+  border-radius:0!important;background:var(--phos);transform-origin:center;}
+.face.love .eye::after{display:none;}
+.face.wow .eye{border-radius:50%!important;}
 .blush{position:absolute;top:52%;width:11%;aspect-ratio:1.7/1;background:var(--phos-dim);
   border-radius:50%;opacity:0;transition:opacity .45s ease;filter:blur(.4vh);}
 .blush.l{left:6%;} .blush.r{right:6%;}
-.face.happy .blush{opacity:.8;}
+.face.happy .blush,.face.love .blush{opacity:.85;}
 
 .status{position:absolute;bottom:22%;left:0;right:0;z-index:4;text-align:center;
   font-size:clamp(8px,1.4vh,13px);letter-spacing:.24em;text-transform:uppercase;color:var(--phos-dim);}
@@ -82,6 +102,13 @@ body{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:var(--pho
 @keyframes bootline{0%{opacity:.95;transform:scaleY(.006);}45%{opacity:.9;transform:scaleY(.012);}
   70%{opacity:.55;transform:scaleY(1);}100%{opacity:0;transform:scaleY(1);}}
 
+.typerow{flex:0 0 auto;display:flex;gap:2vw;padding:0 5vw 1.4vh;background:#000;align-items:center;}
+.typerow input{flex:1;background:#08251d;color:var(--phos);border:1px solid var(--phos-dim);
+  border-radius:99px;padding:1.4vh 4vw;font:inherit;font-size:clamp(12px,1.9vh,16px);min-width:0;}
+.typerow input::placeholder{color:var(--phos-fade);}
+.typerow button{background:var(--phos-dim);color:var(--ink);border:0;border-radius:50%;
+  width:clamp(34px,5.2vh,44px);height:clamp(34px,5.2vh,44px);font:700 18px/1 ui-monospace,monospace;cursor:pointer;flex:0 0 auto;}
+.typerow button:active{transform:scale(.94);}
 .pads{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:9vw;
   padding:3.2vh 0 calc(3.2vh + env(safe-area-inset-bottom));background:#000;}
 .btn{width:min(9.5vh,19vw);aspect-ratio:1;border:0;border-radius:50%;cursor:pointer;
@@ -133,7 +160,23 @@ input[type=range]{width:100%;accent-color:var(--phos);}
 .gate p{color:var(--phos-dim);font-size:clamp(12px,1.9vh,17px);line-height:1.65;max-width:33ch;}
 .gate button{margin-top:1.4vh;padding:2.2vh 9vw;border:0;border-radius:99px;background:var(--phos);
   color:var(--ink);font:700 clamp(14px,2.3vh,19px)/1 ui-monospace,monospace;letter-spacing:.1em;cursor:pointer;}
-video,#buf{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
+#buf{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
+video{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
+video.show{
+  position:absolute;bottom:4%;left:4%;width:26%;height:auto;opacity:.92;
+  border-radius:1.4vh;transform:scaleX(-1);z-index:7;pointer-events:none;
+  border:.35vh solid var(--phos-dim);box-shadow:0 0 2.4vh rgba(157,255,214,.35);
+}
+.handhud{position:absolute;bottom:4%;left:4%;width:26%;z-index:8;pointer-events:none;
+  transform:translateY(115%);text-align:center;
+  font-size:clamp(8px,1.35vh,12px);letter-spacing:.1em;color:var(--phos-dim);
+  text-transform:uppercase;display:none;}
+.handhud.show{display:block;}
+.handhud{display:block;}
+.handhud b{color:var(--phos);font-weight:600;}
+.flash{position:absolute;inset:0;background:var(--phos);opacity:0;z-index:9;pointer-events:none;}
+.flash.go{animation:snap .45s ease-out;}
+@keyframes snap{0%{opacity:.85;}100%{opacity:0;}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;}}
 </style>
 </head>
@@ -142,6 +185,9 @@ video,#buf{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
 <div class="stage" id="stage">
   <div class="timerbar" id="timerbar"></div>
   <div class="boot" id="boot"></div>
+  <div class="flash" id="flash"></div>
+  <div class="handhud" id="handhud"></div>
+  <div class="taskhead" id="taskHead"></div>
   <div class="tasks" id="taskList"></div>
   <div class="face" id="face">
     <div class="blush l"></div><div class="blush r"></div>
@@ -157,12 +203,57 @@ video,#buf{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
   </div>
   <div class="status" id="status"></div>
   <div class="sub" id="sub"></div>
+  <video id="cam" playsinline muted autoplay></video>
+</div>
+
+<div class="typerow">
+  <input type="text" id="typeIn" placeholder="or type to him…" autocomplete="off" enterkeyhint="send">
+  <button id="sendBtn" aria-label="Send">→</button>
 </div>
 
 <div class="pads">
   <button class="btn snd"   id="sndBtn"   aria-label="Sound on or off">ON</button>
   <button class="btn focus" id="focusBtn" aria-label="Start focus timer">25</button>
   <button class="btn talk"  id="talkBtn"  aria-label="Talk to him"></button>
+</div>
+
+<div class="panel" id="modelPage">
+  <div class="panelbar">
+    <button class="back" id="modelBack" aria-label="Back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+           stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      Back
+    </button>
+  </div>
+  <h2 id="modelPageTitle">Choose a model</h2>
+  <div class="typerow" style="padding:0 0 1.4vh">
+    <input type="text" id="modelSearch" placeholder="filter…" autocomplete="off">
+  </div>
+  <p class="note" id="modelPageNote"></p>
+  <div id="modelRows"></div>
+  <button class="close" id="modelClose">done</button>
+</div>
+
+<div class="panel" id="listPage">
+  <div class="panelbar">
+    <button class="back" id="listBack" aria-label="Back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+           stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      Back
+    </button>
+  </div>
+  <h2 id="listTitle">Today</h2>
+  <div class="typerow" style="padding:0 0 1.4vh">
+    <input type="text" id="newTask" placeholder="add something…" autocomplete="off" enterkeyhint="done">
+    <button id="addTaskBtn" aria-label="Add">+</button>
+  </div>
+  <div id="fullList"></div>
+  <div style="display:flex;gap:3vw;flex-wrap:wrap;margin-top:1.4vh">
+    <button class="chip" id="copyList">Copy as text</button>
+    <button class="chip" id="clearDone">Clear finished</button>
+    <button class="chip" id="clearAll">Clear all</button>
+  </div>
+  <button class="close" id="listClose">done</button>
 </div>
 
 <div class="panel" id="panel">
@@ -201,6 +292,7 @@ video,#buf{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
       <option value="gemma-4-12b-it"></option>
     </datalist></div>
   <button class="chip" id="testChip">Test connection</button>
+  <button class="chip" id="chooseChip">Choose model…</button>
   <p class="note" id="keyHint"></p>
   <p class="note"><b>Never put this key in your GitHub file.</b> Typed here it stays on this phone only.
      Without a key he still works, just with simple canned replies.</p>
@@ -219,9 +311,24 @@ video,#buf{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
     <input type="range" id="pitch" min="0.6" max="2" step="0.05" value="1.55"></div>
   <div class="row"><label for="rate">Speed</label>
     <input type="range" id="rate" min="0.6" max="1.6" step="0.05" value="1.02"></div>
+  <div id="webllmPicks" style="display:none">
+    <label style="font-size:clamp(10px,1.55vh,13px);letter-spacing:.12em;text-transform:uppercase;color:var(--phos-dim)">In-page model</label>
+    <div style="display:flex;gap:2.5vw;flex-wrap:wrap;margin:.9vh 0 .4vh">
+      <button class="chip" id="pickFast">Fastest</button>
+      <button class="chip" id="pickBal">Balanced</button>
+      <button class="chip" id="pickSmart">Smartest</button>
+    </div>
+    <p class="note" id="picksNote"></p>
+  </div>
   <button class="chip" id="beepChip">Beep speech: off</button>
   <p class="note">Drop MP3s in a <b>voice/</b> folder in your repo — hello.mp3, yay.mp3, ok.mp3, done.mp3,
      bye.mp3, boot.mp3 — and he'll use them for those moments instead of the phone voice.</p>
+
+  <h2>Camera</h2>
+  <button class="chip on" id="camChip">Camera preview: on</button>
+  <button class="chip on" id="gestChip">Hand gestures: on</button>
+  <button class="chip" id="gestTestChip">Load hand tracking now</button>
+  <p class="note">Press and hold his face to take a photo and ask him what he can see.</p>
 
   <h2>Live voice</h2>
   <div class="row"><label for="liveVoice">His voice</label>
@@ -239,6 +346,10 @@ video,#buf{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
      then he reconnects on his own.</p>
 
   <h2>Listening</h2>
+  <button class="chip" id="wakeChip">Wake word: off</button>
+  <p class="note">With this on he listens quietly all the time and answers when he hears his name.
+     Say <b>"BMO, what time is it"</b> in one go, or just <b>"BMO"</b> and then talk.
+     It keeps the microphone open, so it uses more battery.</p>
   <div class="row"><label for="pause">Pause before he answers — <span id="pauseVal">3.5</span>s</label>
     <input type="range" id="pause" min="1.5" max="10" step="0.5" value="3.5"></div>
   <button class="chip" id="holdChip">Mode: tap to start, tap to send</button>
@@ -251,7 +362,6 @@ video,#buf{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
   <button class="close" id="closePanel">done</button>
 </div>
 
-<video id="cam" playsinline muted autoplay></video>
 <canvas id="buf" width="64" height="48"></canvas>
 
 <div class="gate" id="gate">
@@ -263,7 +373,12 @@ video,#buf{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
 <script>
 (() => {
 "use strict";
-const $=id=>document.getElementById(id);
+const $=id=>document.getElementById(id)||new Proxy({},{
+  get:(t,k)=>k==="classList"?{add(){},remove(){},toggle(){},contains:()=>false}
+        :k==="style"?{}:k==="dataset"?{}:typeof k==="string"&&k.startsWith("add")?()=>{}:
+        (typeof k==="string"&&/Listener|focus|blur|click|appendChild|play|pause/.test(k))?()=>{}:"",
+  set:()=>true
+});
 const stage=$("stage"),face=$("face"),eyeL=$("eyeL"),eyeR=$("eyeR"),mouth=$("mouth");
 const statusEl=$("status"),subEl=$("sub"),bootEl=$("boot"),taskListEl=$("taskList"),timerbar=$("timerbar");
 const talkBtn=$("talkBtn"),focusBtn=$("focusBtn"),sndBtn=$("sndBtn");
@@ -272,10 +387,12 @@ const beepChip=$("beepChip"),clearChip=$("clearChip"),langChip=$("langChip");
 const scaleSl=$("scale"),shiftSl=$("shift"),keyInput=$("key"),nameInput=$("yourName");
 const providerSel=$("provider"),keyHint=$("keyHint"),modelInput=$("model"),testChip=$("testChip");
 const modelList=$("modelList");
+const typeIn=$("typeIn"),sendBtn=$("sendBtn");
+const webllmPicks=$("webllmPicks"),picksNote=$("picksNote");
 const baseUrlInput=$("baseUrl"),baseRow=$("baseRow");
 const diagChip=$("diagChip"),diagOut=$("diagOut"),voiceTestChip=$("voiceTestChip");
-const pauseSl=$("pause"),pauseVal=$("pauseVal"),holdChip=$("holdChip");
-const liveVoiceSel=$("liveVoice");
+const pauseSl=$("pause"),pauseVal=$("pauseVal"),holdChip=$("holdChip"),wakeChip=$("wakeChip");
+const liveVoiceSel=$("liveVoice"),camChip=$("camChip"),flashEl=$("flash"),gestChip=$("gestChip"),gestTestChip=$("gestTestChip"),handHud=$("handhud");
 const gate=$("gate"),startBtn=$("startBtn");
 const video=$("cam"),buf=$("buf"),bctx=buf.getContext("2d",{willReadFrequently:true});
 
@@ -283,6 +400,7 @@ let lang="en",voiceOn=true,beepMode=false,listening=false,seeing=false,busy=fals
 let lastSeen=0,alone=true,prev=null,flapTimer=null,recog=null,voices=[],chosenVoice=null;
 const BUILD="v12 — webllm";
 const DIAG={heard:"",heardAt:0,sent:"",reply:"",err:"",recogErr:"",state:"idle"};
+let MODEL_IDS=[];
 let tasks=[],history=[],apiKey="",userName="",provider="gemini",model="",baseUrl="";
 let focusEnd=0,focusTick=null;
 
@@ -363,7 +481,10 @@ let mood="idle",lookX=0,lookY=0;
 const look=()=>`translate(${lookX*15}%,${lookY*11}%)`;
 const applyLook=()=>{eyeL.style.transform=eyeR.style.transform=look();};
 function setMood(m){
-  mood=m; face.classList.toggle("happy",m==="happy");
+  mood=m;
+  face.classList.toggle("happy",m==="happy"||m==="love");
+  face.classList.toggle("love",m==="love");
+  face.classList.toggle("wow",m==="surprised"||m==="wow");
   eyeL.style.borderRadius=eyeR.style.borderRadius=(m==="curious"||m==="surprised")?"50%":"40%";
   mouth.style.width=m==="happy"?"36%":m==="surprised"?"14%":"26%";
   mouth.style.borderRadius=m==="happy"?"0 0 75% 75%":m==="surprised"?"50%":"0 0 65% 65%";
@@ -374,10 +495,12 @@ function blink(){
 }
 setInterval(()=>{if(Date.now()-lastSeen>2500&&!listening){
   lookX=(Math.random()-.5)*1.3;lookY=(Math.random()-.5)*.85;applyLook();}},3400);
-function startFlap(){clearInterval(flapTimer);
+function startFlap(){speaking=true;clearInterval(flapTimer);
   flapTimer=setInterval(()=>{mouth.style.height=(1.6+Math.random()*5.4).toFixed(1)+"vh";},85);}
 function stopFlap(){clearInterval(flapTimer);flapTimer=null;mouth.style.height="4.5vh";
-  setStatus(focusEnd?T[lang].focusOn:T[lang].tap);}
+  speaking=false;
+  setStatus(focusEnd?T[lang].focusOn:T[lang].tap);
+  setTimeout(()=>{ if(wakeOn&&!capturing&&!liveOn) startWake(); },500);}
 const setStatus=(s,live)=>{statusEl.textContent=s;statusEl.classList.toggle("live",!!live);};
 
 /* ═════════ SPEAK ═════════ */
@@ -431,7 +554,34 @@ function loadTasks(){
 }
 const today=()=>new Date().toISOString().slice(0,10);
 function saveTasks(){ store.set("tasks",JSON.stringify({day:today(),list:tasks})); }
+const taskHead=$("taskHead"), listPage=$("listPage"), fullList=$("fullList"), newTask=$("newTask");
+function openList(){ renderFull(); listPage.classList.add("open"); try{history.pushState({panel:1},"");}catch(e){} }
+function closeList(fromBack){ listPage.classList.remove("open");
+  if(!fromBack){ try{ if(history.state&&history.state.panel) history.back(); }catch(e){} } }
+function renderFull(){
+  fullList.innerHTML="";
+  if(!tasks.length){
+    const e=document.createElement("p"); e.className="note";
+    e.textContent=lang==="ar"?"القائمة فاضية.":"Nothing on the list yet.";
+    fullList.appendChild(e); return;
+  }
+  tasks.forEach((t,i)=>{
+    const row=document.createElement("div");
+    row.className="fullrow"+(t.done?" done":"");
+    row.innerHTML='<i class="tick"></i><span></span><button aria-label="Delete">&times;</button>';
+    row.querySelector("span").textContent=t.text;
+    row.querySelector(".tick").addEventListener("click",()=>{ toggleTask(i); renderFull(); });
+    row.querySelector("button").addEventListener("click",()=>{
+      tasks.splice(i,1); saveTasks(); renderTasks(); renderFull(); click();
+    });
+    fullList.appendChild(row);
+  });
+}
 function renderTasks(){
+  const open=tasks.filter(t=>!t.done).length, done=tasks.length-open;
+  taskHead.innerHTML=tasks.length
+    ? (lang==="ar"?`اليوم · <b>${open}</b> باقي · ${done} خلصت ▸`:`today · <b>${open}</b> open · ${done} done ▸`)
+    : (lang==="ar"?"اليوم · القائمة فاضية ▸":"today · list is empty ▸");
   taskListEl.innerHTML="";
   tasks.forEach((t,i)=>{
     const el=document.createElement("div");
@@ -452,7 +602,7 @@ function toggleTask(i){
 }
 function addTasks(list){
   list.forEach(t=>{ const s=String(t).trim(); if(s) tasks.push({text:s,done:false}); });
-  saveTasks(); renderTasks(); chirpHi();
+  saveTasks(); renderTasks(); if(listPage.classList.contains("open")) renderFull(); chirpHi();
 }
 function completeByText(list){
   list.forEach(q=>{
@@ -718,6 +868,7 @@ const PROVIDERS={
         if(found) return "Using "+found+".";
         throw new Error("Key works but no chat models are available to it.");
       }
+      MODEL_IDS=usable;
       modelList.innerHTML="";
       usable.forEach(n=>{const o=document.createElement("option");o.value=n;modelList.appendChild(o);});
       if(model && usable.includes(model)) return usable.length+" models available. Keeping "+model+".";
@@ -768,6 +919,7 @@ const PROVIDERS={
       const paid=all.filter(m=>!/:free$/.test(m.id)).map(m=>m.id).sort();
       const ids=free.concat(paid);
       if(!ids.length) throw new Error("OpenRouter returned no models.");
+      MODEL_IDS=ids;
       modelList.innerHTML="";
       ids.slice(0,300).forEach(n=>{
         const o=document.createElement("option");
@@ -819,12 +971,18 @@ const PROVIDERS={
       this.engine=await mlc.CreateMLCEngine(id,{initProgressCallback:r=>onProg&&onProg(r.text||"")});
       return this.engine;
     },
+    async choose(tier){
+      const mlc=await import("https://esm.run/@mediapipe/tasks-vision").catch(()=>null) && null;
+      return null;
+    },
     pickDefault(mlc){
       const ids=(mlc.prebuiltAppConfig?.model_list||[]).map(m=>m.model_id);
-      const want=ids.find(i=>/Qwen3-1\.7B.*q4f16/i.test(i))
-              || ids.find(i=>/Qwen2\.5-1\.5B-Instruct.*q4f16/i.test(i))
+      // smallest first: on a phone, speed beats cleverness for a desk buddy
+      const want=ids.find(i=>/Qwen3-0\.6B.*q4f16/i.test(i))
               || ids.find(i=>/Llama-3\.2-1B-Instruct.*q4f16/i.test(i))
-              || ids.find(i=>/1B|0\.5B|1\.5B/i.test(i)) || ids[0];
+              || ids.find(i=>/Qwen2\.5-1\.5B-Instruct.*q4f16/i.test(i))
+              || ids.find(i=>/Qwen3-1\.7B.*q4f16/i.test(i))
+              || ids.find(i=>/0\.5B|0\.6B|1B/i.test(i)) || ids[0];
       if(want){ model=want; modelInput.value=want; store.set("model_webllm",want); }
       return want;
     },
@@ -834,6 +992,7 @@ const PROVIDERS={
       const all=(mlc.prebuiltAppConfig?.model_list||[]).map(m=>m.model_id);
       const small=all.filter(i=>/0\.5B|0\.6B|1B|1\.5B|1\.7B|2B|3B/i.test(i)&&/q4f16|q4f32/i.test(i));
       const ids=small.concat(all.filter(i=>!small.includes(i)));
+      MODEL_IDS=ids;
       modelList.innerHTML="";
       ids.slice(0,200).forEach(n=>{const o=document.createElement("option");o.value=n;modelList.appendChild(o);});
       if(!model||!ids.includes(model)) this.pickDefault(mlc);
@@ -859,6 +1018,7 @@ const PROVIDERS={
       const d=await res.json();
       const ids=(d.data||[]).map(m=>m.id);
       if(!ids.length) throw new Error("Server answered but has no model loaded.");
+      MODEL_IDS=ids;
       modelList.innerHTML="";
       ids.forEach(n=>{const o=document.createElement("option");o.value=n;modelList.appendChild(o);});
       if(!model||!ids.includes(model)){ model=ids[0]; modelInput.value=model; store.set("model_local",model); }
@@ -956,7 +1116,13 @@ async function think(said){
     const out=localBrain(said);
     return perform(out, out.add.length?"ok":out.done.length?"yay":null);
   }
-  if(VISION_RE.test(said)||VISION_AR.test(said)){
+  if(!pendingImage&&(POINT_RE.test(said)||POINT_AR.test(said))&&lastLandmarks.length){
+    const lm=lastLandmarks[0], dx=lm[8].x-lm[6].x, dy=lm[8].y-lm[6].y;
+    pendingImage=grabFrameMarked(
+      Math.min(.97,Math.max(.03,lm[8].x+dx*2.4)),
+      Math.min(.97,Math.max(.03,lm[8].y+dy*2.4)));
+  }
+  if(!pendingImage&&(VISION_RE.test(said)||VISION_AR.test(said))){
     pendingImage=grabFrame();
     if(!pendingImage) speak(lang==="ar"?"الكاميرا مغلقة.":"My camera isn't on.");
   }
@@ -999,12 +1165,147 @@ async function think(said){
 }
 
 /* ═════════ SEE ═════════ */
+let CAMSTATUS="not started";
 async function startCamera(){
   try{
-    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:320,height:240},audio:false});
-    video.srcObject=s; await video.play(); seeing=true; requestAnimationFrame(watch);
-  }catch(e){ seeing=false; }
+    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:640,height:480},audio:false});
+    video.srcObject=s; await video.play();
+    seeing=true; CAMSTATUS="running "+video.videoWidth+"x"+video.videoHeight;
+    handHud.innerHTML="camera <b>on</b>";
+    requestAnimationFrame(watch); setTimeout(initHands,1200);
+  }catch(e){
+    seeing=false; CAMSTATUS="FAILED :: "+String(e.name||e.message||e);
+    handHud.innerHTML="camera <b>blocked</b>";
+    setTimeout(()=>speak(lang==="ar"
+      ?"ما قدرت أفتح الكاميرا. اسمح لي بالكاميرا من إعدادات الموقع."
+      :"I couldn't open the camera. Allow camera access in the site settings, then reload."),2200);
+  }
 }
+
+/* ══════════ HAND GESTURES (MediaPipe) ══════════
+   Loads lazily. If it can't load, the motion-based wave still works. */
+let hands=null, gestOn=true, lastGest="", lastGestAt=0, gestBusy=false, handsLoading=false, lastLandmarks=[];
+let HANDSTATUS="not started";
+
+/* the pinned bundle path is the reliable one; the bare specifier often 404s */
+const MP_SOURCES=[
+  {lib:"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs",
+   wasm:"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm"},
+  {lib:"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
+   wasm:"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"},
+  {lib:"https://esm.run/@mediapipe/tasks-vision",
+   wasm:"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"}
+];
+let F16=null;
+async function hasF16(){
+  if(F16!==null) return F16;
+  try{ const a=await navigator.gpu.requestAdapter(); F16=!!(a&&a.features&&a.features.has("shader-f16")); }
+  catch(e){ F16=false; }
+  return F16;
+}
+const MP_MODEL="https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+
+async function initHands(){
+  if(hands||handsLoading||!gestOn) return;
+  handsLoading=true;
+  const notes=[];
+  for(const src of MP_SOURCES){
+    try{
+      HANDSTATUS="loading "+src.lib.split("/").slice(-2)[0];
+      handHud.innerHTML="hands <b>loading…</b>";
+      const v=await import(/* webpackIgnore: true */ src.lib);
+      const files=await v.FilesetResolver.forVisionTasks(src.wasm);
+      hands=await v.HandLandmarker.createFromOptions(files,{
+        baseOptions:{modelAssetPath:MP_MODEL, delegate:"GPU"},
+        numHands:2, runningMode:"VIDEO"
+      }).catch(async()=>await v.HandLandmarker.createFromOptions(files,{
+        baseOptions:{modelAssetPath:MP_MODEL, delegate:"CPU"},
+        numHands:2, runningMode:"VIDEO"
+      }));
+      HANDSTATUS="ready ("+src.lib.split("@").pop().split("/")[0]+")";
+      handHud.innerHTML="hands <b>ready</b>";
+      handsLoading=false;
+      return;
+    }catch(e){ notes.push(String(e.message||e).slice(0,70)); }
+  }
+  HANDSTATUS="FAILED :: "+notes.join(" | ");
+  handHud.innerHTML="hands <b>failed</b>";
+  handsLoading=false;
+}
+
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function extended(lm,tip,pip,wrist){ return dist(lm[tip],lm[wrist])>dist(lm[pip],lm[wrist])*1.15; }
+function fingerState(lm){
+  const w=lm[0];
+  return {
+    thumb:dist(lm[4],w)>dist(lm[2],w)*1.25,
+    index:extended(lm,8,6,0), middle:extended(lm,12,10,0),
+    ring:extended(lm,16,14,0), pinky:extended(lm,20,18,0)
+  };
+}
+function classify(list){
+  if(list.length>=2){
+    const [a,b]=list;
+    const idxGap=dist(a[8],b[8]), thbGap=dist(a[4],b[4]);
+    const spread=Math.max(dist(a[8],a[4]),dist(b[8],b[4]));
+    // heart: index tips touching, thumb tips touching, index above thumbs
+    if(idxGap<spread*0.85 && thbGap<spread*1.1 &&
+       (a[8].y+b[8].y)/2 < (a[4].y+b[4].y)/2) return "heart";
+  }
+  if(!list.length) return "";
+  const f=fingerState(list[0]);
+  const n=[f.thumb,f.index,f.middle,f.ring,f.pinky].filter(Boolean).length;
+  if(f.index&&f.middle&&!f.ring&&!f.pinky) return "peace";
+  if(f.thumb&&!f.index&&!f.middle&&!f.ring&&!f.pinky) return "thumbsup";
+  if(n===0) return "fist";
+  if(n>=5) return "palm";
+  if(f.index&&!f.middle&&!f.ring&&!f.pinky) return "point";
+  return "";
+}
+
+const GEST_SAY={
+ en:{ heart:["Aw! My whole screen just went warm.","I love you too. Beep beep.","That's the nicest thing anyone's pointed at me."],
+      peace:["Peace! Right back at you.","Two fingers. Very cool."],
+      thumbsup:["Yes! We're doing great.","Thumbs up received and appreciated."],
+      fist:["Bump! Pow.","Fist bump. We're a team."],
+      palm:["Hello hello!","Hi! I see the whole hand."],
+      point:["Me? Yes, that's me.","You pointed. I noticed."] },
+ ar:{ heart:["يا قلبي! شاشتي دفت.","وأنا أحبك. بيب بيب.","أحلى شي صار لي اليوم."],
+      peace:["سلام! وأنت كمان.","إصبعين. حلو."],
+      thumbsup:["ممتاز! ماشين تمام.","وصلني الإعجاب."],
+      fist:["طق! تمام.","لكمة صداقة. إحنا فريق."],
+      palm:["هلا هلا!","أهلاً! شفت يدك كاملة."],
+      point:["أنا؟ إيه، أنا.","أشرت لي. انتبهت."] }
+};
+const GEST_MOOD={heart:"love",peace:"happy",thumbsup:"happy",fist:"happy",palm:"happy",point:"curious"};
+
+async function readHands(t){
+  if(!hands||gestBusy||!video.videoWidth) return;
+  gestBusy=true;
+  try{
+    const r=hands.detectForVideo(video,t);
+    const lms=r.landmarks||[];
+    lastLandmarks=lms;
+    const g=classify(lms);
+    handHud.innerHTML=lms.length
+      ? (lms.length+" hand"+(lms.length>1?"s":"")+" · <b>"+(g||"—")+"</b>")
+      : "hands <b>ready</b> · none seen";
+    const now=Date.now();
+    if(g && (g!==lastGest || now-lastGestAt>7000) && now-lastGestAt>3500){
+      lastGest=g; lastGestAt=now;
+      if(g==="heart"){ tone(700,.12,{type:"triangle"}); tone(880,.12,{at:.12,type:"triangle"});
+                       tone(1047,.2,{at:.24,type:"triangle"}); }
+      else chirpHi();
+      if(g==="palm") waveBack();
+      else if(g==="point"&&lms.length){ pointAt(lms[0]); }
+      else{ setMood(GEST_MOOD[g]||"happy");
+            speak(pick(GEST_SAY[lang][g]||GEST_SAY.en[g]));
+            setTimeout(()=>setMood("idle"),3200); }
+    }
+  }catch(e){}
+  gestBusy=false;
+}
+
 const hand=$("hand");
 let xTrail=[], lastWave=0;
 function waveBack(){
@@ -1043,7 +1344,43 @@ function grabFrame(){
   c.getContext("2d").drawImage(video,0,0,w,h);
   return {mime:"image/jpeg", data:c.toDataURL("image/jpeg",0.72).split(",")[1]};
 }
+function grabFrameMarked(tx,ty){
+  if(!seeing||!video.videoWidth) return null;
+  const c=document.createElement("canvas");
+  const w=640, h=Math.round(video.videoHeight*(w/video.videoWidth));
+  c.width=w; c.height=h;
+  const g=c.getContext("2d");
+  g.drawImage(video,0,0,w,h);
+  const x=tx*w, y=ty*h, r=Math.max(26,w*0.075);
+  g.lineWidth=Math.max(4,w*0.008);
+  g.strokeStyle="#ff2d55";
+  g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.stroke();
+  g.beginPath(); g.moveTo(x-r*1.5,y); g.lineTo(x-r*0.5,y);
+  g.moveTo(x+r*0.5,y); g.lineTo(x+r*1.5,y);
+  g.moveTo(x,y-r*1.5); g.lineTo(x,y-r*0.5);
+  g.moveTo(x,y+r*0.5); g.lineTo(x,y+r*1.5); g.stroke();
+  return {mime:"image/jpeg", data:c.toDataURL("image/jpeg",0.75).split(",")[1]};
+}
+
+/* Follow the index finger out past the fingertip and mark what's there. */
+function pointAt(lm){
+  const tip=lm[8], pip=lm[6];
+  const dx=tip.x-pip.x, dy=tip.y-pip.y;
+  const tx=Math.min(0.97,Math.max(0.03,tip.x+dx*2.4));
+  const ty=Math.min(0.97,Math.max(0.03,tip.y+dy*2.4));
+  const shot=grabFrameMarked(tx,ty);
+  if(!shot){ chirpLow(); return; }
+  flashEl.classList.remove("go"); void flashEl.offsetWidth; flashEl.classList.add("go");
+  tone(1400,.06,{vol:.2}); tone(1000,.08,{at:.07,vol:.16});
+  pendingImage=shot; setMood("curious");
+  think(lang==="ar"
+    ? "أنا أشير إلى شيء. في الصورة دائرة حمراء عند المكان الذي أشير إليه تقريباً. وش هو؟ جاوب بجملة قصيرة."
+    : "I'm pointing at something. The red circle marks roughly where I'm pointing. What is it? One short sentence, and one interesting thing about it.");
+}
+
 let pendingImage=null;
+const POINT_RE=/\b(what am i pointing at|what.s that|what is that|tell me about (this|that))\b/i;
+const POINT_AR=/(وش هذا|وش ذاك|أشير|عن هذا)/;
 const VISION_RE=/\b(what (do you |can you )?see|look at (this|that|me)|what is this|what'?s this|what am i holding|describe (this|what you see)|can you read this)\b/i;
 const VISION_AR=/(شوف|وش تشوف|شنو هذا|وش هذا|اقرأ هذا|انظر)/;
 
@@ -1071,6 +1408,7 @@ function watch(t){
       } else if(Date.now()-lastSeen>9000){ alone=true; }
     }
     prev=f;
+    if(gestOn&&hands&&t-(watch.lastHand||0)>170){ watch.lastHand=t; readHands(t); }
   }
   requestAnimationFrame(watch);
 }
@@ -1080,6 +1418,51 @@ function greet(){
   if(!open) return speak(lang==="ar"?`أهلاً${who}! القائمة فاضية. وش الخطة؟`:`Hey${who}! Your list is empty. What's the plan?`,{clip:"hello"});
   speak(lang==="ar"?`أهلاً${who}! باقي ${open} من مهامك.`:`Hey${who}! ${open} thing${open>1?"s":""} still open.`,{clip:"hello"});
 }
+
+
+/* ══════════ WAKE WORD ══════════
+   A second, quiet recogniser that only listens for his name. */
+let wakeOn=false, wakeRec=null, wakeAlive=false, speaking=false;
+const WAKE_RE=/\b(bmo|beemo|bee mo|be mo|bemo|bmw|بي مو|بيمو|بي إم أو)\b/i;
+
+function startWake(){
+  if(!wakeOn||wakeAlive||capturing||liveOn) return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return;
+  wakeRec=new SR();
+  wakeRec.lang=lang==="ar"?"ar-SA":"en-US";
+  wakeRec.continuous=true; wakeRec.interimResults=true; wakeRec.maxAlternatives=1;
+  wakeAlive=true;
+  wakeRec.onresult=e=>{
+    if(speaking||capturing||busy) return;              // don't answer himself
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const txt=e.results[i][0].transcript;
+      const m=txt.match(WAKE_RE);
+      if(!m) continue;
+      const after=txt.slice(txt.indexOf(m[0])+m[0].length).replace(/^[\s,.:!?ـ]+/,"").trim();
+      stopWake();
+      chirpHi(); setMood("curious");
+      if(after.length>2){                              // "BMO, what time is it"
+        DIAG.sent=after; DIAG.state="woken + sent";
+        subEl.textContent="“"+after+"”";
+        setTimeout(()=>think(after),200);
+      }else{                                           // just his name — listen properly
+        setTimeout(startCapture,220);
+      }
+      return;
+    }
+  };
+  wakeRec.onerror=()=>{};
+  wakeRec.onend=()=>{ wakeAlive=false; if(wakeOn&&!capturing&&!liveOn) setTimeout(startWake,600); };
+  try{ wakeRec.start(); setStatus(lang==="ar"?"يسمع اسمه":"waiting for his name"); }
+  catch(e){ wakeAlive=false; }
+}
+function stopWake(){
+  wakeOn_paused=true;
+  try{ wakeRec&&wakeRec.stop(); }catch(e){}
+  wakeAlive=false;
+}
+let wakeOn_paused=false;
 
 /* ═════════ LISTEN ═════════ */
 /* He collects everything you say and only replies when YOU decide he should:
@@ -1097,7 +1480,7 @@ function showHeard(interim){
   subEl.textContent=txt?"“"+txt+"…”":"";
 }
 function startCapture(){
-  DIAG.state="listening"; DIAG.recogErr="";
+  DIAG.state="listening"; DIAG.recogErr=""; stopWake();
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){ speak(T[lang].unsupported); return; }
   capturing=true; restartOK=true; buffer=""; lastInterim="";
@@ -1146,6 +1529,7 @@ function finishCapture(){
   const said=(buffer.trim()||lastInterim.trim());
   buffer=""; lastInterim="";
   if(!said){
+    setTimeout(startWake,700);
     setStatus(T[lang].tap); if(mood==="curious")setMood("idle");
     DIAG.state="heard nothing";
     speak(lang==="ar"?"ما سمعت شي. قرّب الجوال وجرب مرة ثانية.":"I didn't hear anything. Try again a bit closer?");
@@ -1332,6 +1716,20 @@ function liveToggle(){
 }
 
 /* ═════════ CONTROLS ═════════ */
+function sendTyped(){
+  const t=typeIn.value.trim();
+  if(!t) return;
+  typeIn.value=""; typeIn.blur();
+  DIAG.sent=t; DIAG.state="sent to model (typed)";
+  subEl.setAttribute("dir",lang==="ar"?"rtl":"ltr");
+  subEl.textContent="“"+t+"”";
+  click(); think(t);
+}
+sendBtn.addEventListener("click",sendTyped);
+typeIn.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); sendTyped(); } });
+// typing in the box must not open the settings panel
+typeIn.addEventListener("click",e=>e.stopPropagation());
+
 talkBtn.addEventListener("click",e=>{ if(provider==="live") return liveToggle(); if(!holdMode) listen(); });
 talkBtn.addEventListener("pointerdown",e=>{ if(provider==="live") return; if(holdMode){ e.preventDefault(); click(); startCapture(); } });
 ["pointerup","pointercancel","pointerleave"].forEach(ev=>
@@ -1340,6 +1738,64 @@ talkBtn.addEventListener("pointerdown",e=>{ if(provider==="live") return; if(hol
 pauseSl.addEventListener("input",()=>{ pauseVal.textContent=pauseSl.value; store.set("pause",pauseSl.value); });
 liveVoiceSel.addEventListener("change",()=>{ store.set("livevoice",liveVoiceSel.value); click();
   if(liveOn){ liveToggle(); setTimeout(liveToggle,400); } });
+const TIERS={
+  fast:[/Qwen3-0\.6B/i,/SmolLM2-1\.7B/i,/Llama-3\.2-1B-Instruct/i,/Qwen2\.5-0\.5B/i],
+  bal:[/Llama-3\.2-1B-Instruct/i,/Qwen2\.5-1\.5B-Instruct/i,/Qwen3-1\.7B/i,/gemma-2-2b-it/i],
+  smart:[/Qwen3-1\.7B/i,/Llama-3\.2-3B-Instruct/i,/Phi-3\.5-mini/i,/gemma-2-2b-it/i]
+};
+async function pickTier(tier,btn){
+  click(); const old=btn.textContent; btn.textContent="Looking…";
+  try{
+    if(!navigator.gpu) throw new Error("No WebGPU on this browser.");
+    const f16=await hasF16();
+    const mlc=await import("https://esm.run/@mlc-ai/web-llm");
+    const ids=(mlc.prebuiltAppConfig?.model_list||[]).map(m=>m.model_id);
+    const quant=f16?/q4f16/i:/q4f32/i;
+    let hit=null;
+    for(const re of TIERS[tier]){
+      hit=ids.find(i=>re.test(i)&&quant.test(i)) || ids.find(i=>re.test(i));
+      if(hit) break;
+    }
+    if(!hit) throw new Error("No matching model in the catalogue.");
+    provider="webllm"; providerSel.value="webllm"; store.set("provider","webllm");
+    model=hit; modelInput.value=hit; store.set("model_webllm",hit);
+    if(PROVIDERS.webllm.engine){ PROVIDERS.webllm.engine=null; }   // force a reload
+    picksNote.textContent=(f16?"":"Your GPU has no half-precision, so I picked a 32-bit build — bigger download, same quality. ")+
+      "Set to "+hit+". Tap the red button to start the download.";
+    chirpHi();
+  }catch(e){ picksNote.textContent=String(e.message||e); chirpLow(); }
+  btn.textContent=old;
+}
+$("pickFast").addEventListener("click",e=>pickTier("fast",e.currentTarget));
+$("pickBal").addEventListener("click",e=>pickTier("bal",e.currentTarget));
+$("pickSmart").addEventListener("click",e=>pickTier("smart",e.currentTarget));
+
+gestTestChip.addEventListener("click",async()=>{
+  click(); gestTestChip.textContent="Loading…";
+  hands=null; gestOn=true; await initHands();
+  gestTestChip.textContent=hands?"Hand tracking ready":"Failed — see status";
+  diagOut.textContent=HANDSTATUS;
+  if(hands) chirpHi(); else chirpLow();
+});
+gestChip.addEventListener("click",()=>{
+  gestOn=!gestOn; gestChip.classList.toggle("on",gestOn);
+  gestChip.textContent="Hand gestures: "+(gestOn?"on":"off");
+  store.set("gest",gestOn?"1":"0"); click(); if(gestOn) initHands();
+});
+camChip.addEventListener("click",()=>{
+  const on=!video.classList.contains("show");
+  video.classList.toggle("show",on);
+  handHud.classList.toggle("show",on);
+  camChip.classList.toggle("on",on);
+  camChip.textContent="Camera preview: "+(on?"on":"off");
+  store.set("campreview",on?"1":"0"); click();
+});
+wakeChip.addEventListener("click",()=>{
+  wakeOn=!wakeOn; wakeChip.classList.toggle("on",wakeOn);
+  wakeChip.textContent="Wake word: "+(wakeOn?"on":"off");
+  store.set("wake",wakeOn?"1":"0"); click();
+  if(wakeOn) startWake(); else { stopWake(); setStatus(T[lang].tap); }
+});
 holdChip.addEventListener("click",()=>{
   holdMode=!holdMode; store.set("hold",holdMode?"1":"0"); holdChip.classList.toggle("on",holdMode);
   holdChip.textContent="Mode: "+(holdMode?"hold the button while talking":"tap to start, tap to send");
@@ -1358,11 +1814,89 @@ function closePanel(fromBack){
   panel.classList.remove("open");
   if(!fromBack){ try{ if(history.state&&history.state.panel) history.back(); }catch(e){} }
 }
-stage.addEventListener("click",()=>{click();openPanel();});
+let pressTimer=null, longFired=false;
+function lookNow(){
+  longFired=true;
+  const shot=grabFrame();
+  if(!shot){ chirpLow(); speak(lang==="ar"?"الكاميرا مغلقة.":"My camera isn't on."); return; }
+  flashEl.classList.remove("go"); void flashEl.offsetWidth; flashEl.classList.add("go");
+  tone(1400,.06,{vol:.2}); tone(900,.07,{at:.07,vol:.16});
+  pendingImage=shot; setMood("curious");
+  think(lang==="ar"?"وش تشوف في الصورة؟":"What do you see right now?");
+}
+stage.addEventListener("pointerdown",()=>{
+  longFired=false;
+  clearTimeout(pressTimer);
+  pressTimer=setTimeout(lookNow,650);
+});
+["pointerup","pointercancel","pointerleave"].forEach(ev=>
+  stage.addEventListener(ev,()=>clearTimeout(pressTimer)));
+stage.addEventListener("click",()=>{ if(longFired){longFired=false;return;} click(); openPanel(); });
 $("closePanel").addEventListener("click",()=>{click();closePanel();});
+const modelPage=$("modelPage"), modelRows=$("modelRows"), modelSearch=$("modelSearch"), modelPageNote=$("modelPageNote");
+function renderModels(){
+  const q=modelSearch.value.trim().toLowerCase();
+  const list=MODEL_IDS.filter(n=>!q||n.toLowerCase().includes(q));
+  modelRows.innerHTML="";
+  if(!list.length){
+    const e=document.createElement("p"); e.className="note";
+    e.textContent=MODEL_IDS.length?"Nothing matches that.":"No list yet — tap Test connection first.";
+    modelRows.appendChild(e); return;
+  }
+  list.slice(0,200).forEach(n=>{
+    const row=document.createElement("div");
+    row.className="modelrow"+(n===model?" sel":"");
+    const label=document.createElement("span"); label.textContent=n; row.appendChild(label);
+    if(/:free$/.test(n)){ const tag=document.createElement("em"); tag.textContent="free"; row.appendChild(tag); }
+    row.addEventListener("click",()=>{
+      model=n; modelInput.value=n; store.set("model_"+provider,n);
+      if(provider==="webllm"&&PROVIDERS.webllm.engine) PROVIDERS.webllm.engine=null;
+      history=[]; chirpHi(); renderModels();
+      modelPageNote.textContent="Now using "+n+".";
+    });
+    modelRows.appendChild(row);
+  });
+}
+async function openModels(){
+  modelPage.classList.add("open");
+  try{ history.pushState({panel:1},""); }catch(e){}
+  modelPageNote.textContent="";
+  if(!MODEL_IDS.length){
+    modelPageNote.textContent="Fetching the list…";
+    try{ const P=PROVIDERS[provider]; if(P.probe){ modelPageNote.textContent=await P.probe(); } }
+    catch(e){ modelPageNote.textContent=explain(e); }
+  }
+  renderModels();
+}
+function closeModels(fromBack){ modelPage.classList.remove("open");
+  if(!fromBack){ try{ if(history.state&&history.state.panel) history.back(); }catch(e){} } }
+$("chooseChip").addEventListener("click",()=>{click();openModels();});
+$("modelBack").addEventListener("click",()=>{click();closeModels();});
+$("modelClose").addEventListener("click",()=>{click();closeModels();});
+modelSearch.addEventListener("input",renderModels);
+
+taskHead.addEventListener("click",e=>{ e.stopPropagation(); click(); openList(); });
+$("listBack").addEventListener("click",()=>{click();closeList();});
+$("listClose").addEventListener("click",()=>{click();closeList();});
+$("addTaskBtn").addEventListener("click",()=>{ const v=newTask.value.trim();
+  if(v){ addTasks([v]); newTask.value=""; renderFull(); } });
+newTask.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("addTaskBtn").click(); } });
+$("copyList").addEventListener("click",async()=>{
+  const txt=tasks.map(t=>(t.done?"[x] ":"[ ] ")+t.text).join("\n");
+  try{ await navigator.clipboard.writeText(txt); $("copyList").textContent="Copied"; }
+  catch(e){ $("copyList").textContent="Couldn't copy"; }
+  setTimeout(()=>{$("copyList").textContent="Copy as text";},2000); click();
+});
+$("clearDone").addEventListener("click",()=>{ tasks=tasks.filter(t=>!t.done);
+  saveTasks(); renderTasks(); renderFull(); click(); });
+$("clearAll").addEventListener("click",()=>{ tasks=[]; saveTasks(); renderTasks(); renderFull(); click(); });
 $("backBtn").addEventListener("click",()=>{click();closePanel();});
 // Android's hardware/gesture back closes the panel instead of leaving the page
-window.addEventListener("popstate",()=>{ if(panel.classList.contains("open")) closePanel(true); });
+window.addEventListener("popstate",()=>{
+  if(modelPage.classList.contains("open")) return closeModels(true);
+  if(listPage.classList.contains("open")) return closeList(true);
+  if(panel.classList.contains("open")) closePanel(true);
+});
 beepChip.addEventListener("click",()=>{
   beepMode=!beepMode;beepChip.classList.toggle("on",beepMode);
   beepChip.textContent="Beep speech: "+(beepMode?"on":"off");store.set("beep",beepMode?"1":"0");click();
@@ -1385,6 +1919,9 @@ async function refreshDiag(){
     "speech recognition: "+(SR?"supported":"NOT SUPPORTED"),
     "mic permission: "+mic,
     "audio engine: "+(AC?AC.state:"not started"),
+    "camera: "+CAMSTATUS,
+    "hand tracking: "+HANDSTATUS,
+    "last gesture: "+(lastGest||"none"),
     "hold mode: "+(holdMode?"ON (press and hold)":"off (tap to start, tap to send)"),
     "state: "+DIAG.state,
     "last heard: "+(DIAG.heard||"(nothing yet)"),
@@ -1403,12 +1940,13 @@ voiceTestChip.addEventListener("click",()=>{
 providerSel.addEventListener("change",()=>{
   if(liveOn) liveToggle();
   provider=providerSel.value; store.set("provider",provider);
-  liveModelIdx=0;
+  liveModelIdx=0; MODEL_IDS=[];
   apiKey=store.get("key_"+provider,""); keyInput.value=apiKey;
   model=store.get("model_"+provider,""); modelInput.value=model;
   modelInput.placeholder=PROVIDERS[provider].model;
   baseUrl=store.get("baseurl",""); baseUrlInput.value=baseUrl;
   baseRow.style.display=provider==="local"?"":"none";
+  webllmPicks.style.display=provider==="webllm"?"":"none";
   keyHint.textContent=PROVIDERS[provider].hint; history=[]; click();
 });
 keyInput.addEventListener("input",()=>{apiKey=keyInput.value.trim();store.set("key_"+provider,apiKey);});
@@ -1469,7 +2007,13 @@ startBtn.addEventListener("click",async()=>{
     holdChip.textContent="Mode: hold the button while talking"; }
   baseUrl=store.get("baseurl",""); baseUrlInput.value=baseUrl;
   baseRow.style.display=provider==="local"?"":"none";
+  if(store.get("gest","1")==="0"){ gestOn=false; gestChip.classList.remove("on");
+    gestChip.textContent="Hand gestures: off"; }
+  if(store.get("campreview","1")==="1"){ video.classList.add("show"); handHud.classList.add("show");
+    camChip.classList.add("on"); camChip.textContent="Camera preview: on"; }
   liveVoiceSel.value=store.get("livevoice","Puck");
+  if(store.get("wake","0")==="1"){ wakeOn=true; wakeChip.classList.add("on");
+    wakeChip.textContent="Wake word: on"; setTimeout(startWake,3000); }
   applyFit(); loadTasks();
 
   initAudio(); if(AC.state==="suspended") AC.resume();
