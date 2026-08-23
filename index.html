@@ -186,6 +186,7 @@ video,#buf{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;}
       <option value="openrouter">OpenRouter — free models</option>
       <option value="claude">Anthropic Claude — paid credits</option>
       <option value="local">LM Studio / local — your own machine</option>
+      <option value="webllm">In this page — no key, runs on the phone</option>
     </select></div>
   <div class="row" id="baseRow" style="display:none"><label for="baseUrl">Server address</label>
     <input type="text" id="baseUrl" placeholder="https://your-tunnel.trycloudflare.com/v1" autocomplete="off"></div>
@@ -280,6 +281,7 @@ const video=$("cam"),buf=$("buf"),bctx=buf.getContext("2d",{willReadFrequently:t
 
 let lang="en",voiceOn=true,beepMode=false,listening=false,seeing=false,busy=false;
 let lastSeen=0,alone=true,prev=null,flapTimer=null,recog=null,voices=[],chosenVoice=null;
+const BUILD="v12 — webllm";
 const DIAG={heard:"",heardAt:0,sent:"",reply:"",err:"",recogErr:"",state:"idle"};
 let tasks=[],history=[],apiKey="",userName="",provider="gemini",model="",baseUrl="";
 let focusEnd=0,focusTick=null;
@@ -804,6 +806,48 @@ const PROVIDERS={
     model:'gemini-3.1-flash-live-preview',
     call(){ throw new Error("Live mode talks over WebSocket — tap the red button instead."); }
   },
+  webllm:{
+    hint:'Runs entirely inside this page using your phone GPU. No key, no account, works offline once loaded. First use downloads about 1 GB — do it on Wi-Fi, and keep the screen on while it loads.',
+    model:'',
+    engine:null,
+    async load(onProg){
+      if(this.engine) return this.engine;
+      if(!navigator.gpu) throw new Error("This phone's browser has no WebGPU. Update Chrome, or use Gemini instead.");
+      const mlc=await import("https://esm.run/@mlc-ai/web-llm");
+      this._mlc=mlc;
+      const id=modelOf()||this.pickDefault(mlc);
+      this.engine=await mlc.CreateMLCEngine(id,{initProgressCallback:r=>onProg&&onProg(r.text||"")});
+      return this.engine;
+    },
+    pickDefault(mlc){
+      const ids=(mlc.prebuiltAppConfig?.model_list||[]).map(m=>m.model_id);
+      const want=ids.find(i=>/Qwen3-1\.7B.*q4f16/i.test(i))
+              || ids.find(i=>/Qwen2\.5-1\.5B-Instruct.*q4f16/i.test(i))
+              || ids.find(i=>/Llama-3\.2-1B-Instruct.*q4f16/i.test(i))
+              || ids.find(i=>/1B|0\.5B|1\.5B/i.test(i)) || ids[0];
+      if(want){ model=want; modelInput.value=want; store.set("model_webllm",want); }
+      return want;
+    },
+    async probe(){
+      if(!navigator.gpu) throw new Error("No WebGPU on this browser — try updating Chrome.");
+      const mlc=await import("https://esm.run/@mlc-ai/web-llm");
+      const all=(mlc.prebuiltAppConfig?.model_list||[]).map(m=>m.model_id);
+      const small=all.filter(i=>/0\.5B|0\.6B|1B|1\.5B|1\.7B|2B|3B/i.test(i)&&/q4f16|q4f32/i.test(i));
+      const ids=small.concat(all.filter(i=>!small.includes(i)));
+      modelList.innerHTML="";
+      ids.slice(0,200).forEach(n=>{const o=document.createElement("option");o.value=n;modelList.appendChild(o);});
+      if(!model||!ids.includes(model)) this.pickDefault(mlc);
+      return small.length+" phone-sized models. Using "+model+". Tap the red button to start the download.";
+    },
+    async call(){
+      const eng=await this.load(t=>{ setStatus(t.slice(0,42),true); subEl.textContent=t.slice(0,120); });
+      const res=await eng.chat.completions.create({
+        messages:[{role:"system",content:systemPrompt()},...history],
+        max_tokens:320, temperature:0.8
+      });
+      return (res.choices?.[0]?.message?.content||"").replace(/<think>[\s\S]*?<\/think>/gi,"").trim();
+    }
+  },
   local:{
     hint:'LM Studio → Developer tab → Start Server, and turn CORS ON. Because this page is HTTPS it cannot call a plain http:// address — run a free Cloudflare tunnel on your PC and paste the https URL it prints, ending in /v1. Leave the key blank.',
     model:'',
@@ -907,7 +951,7 @@ function perform(out,clip){
 }
 
 async function think(said){
-  const needsKey = provider!=="local";
+  const needsKey = provider!=="local" && provider!=="webllm";
   if((needsKey && !apiKey) || (provider==="local" && !baseUrl)){
     const out=localBrain(said);
     return perform(out, out.add.length?"ok":out.done.length?"yay":null);
@@ -1333,6 +1377,8 @@ async function refreshDiag(){
   let mic="unknown";
   try{ const st=await navigator.permissions.query({name:"microphone"}); mic=st.state; }catch(e){}
   const lines=[
+    "build: "+BUILD,
+    "webgpu: "+(navigator.gpu?"available":"NOT available"),
     "provider: "+provider+(provider==="local"?("  url: "+(baseUrl||"(blank)")):""),
     "model: "+(modelOf()||"(none)"),
     "key: "+(apiKey?("set, "+apiKey.length+" chars"):"blank"),
@@ -1373,7 +1419,8 @@ testChip.addEventListener("click",async()=>{
   const save=history.slice(); history=[{role:"user",content:"say hi in three words"}];
   try{
     const P=PROVIDERS[provider];
-    if(provider==="local"){ if(!baseUrl) throw new Error("Add the server address first."); }
+    if(provider==="webllm"){ /* nothing to configure */ }
+    else if(provider==="local"){ if(!baseUrl) throw new Error("Add the server address first."); }
     else if(!apiKey) throw new Error("No key pasted yet.");
     if(P.probe){ keyHint.textContent=await P.probe(); }
     const r=await callModel();
